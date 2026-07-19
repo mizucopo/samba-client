@@ -25,7 +25,7 @@ jobs:
         run: |
           VERSION="$(cat version)"
           # Temporary exception: mizucopo/repo-template#43
-          if ! printf '%s\n' "$VERSION" | grep -Eq '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'; then
+          if [[ ! "$VERSION" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
             echo "version must be a plain SemVer value" >&2
             exit 1
           fi
