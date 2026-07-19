@@ -24,7 +24,9 @@ jobs:
         continue-on-error: true
         run: |
           VERSION="$(cat version)"
-          if [ -z "$VERSION" ]; then
+          # Temporary exception: mizucopo/repo-template#43
+          if ! printf '%s\n' "$VERSION" | grep -Eq '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'; then
+            echo "version must be a plain SemVer value" >&2
             exit 1
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
@@ -33,9 +35,12 @@ jobs:
         id: tag
         if: steps.version.outcome == 'success'
         continue-on-error: true
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
+          # Temporary exception: mizucopo/repo-template#43
           git fetch --tags
-          if git rev-parse "${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
+          if git rev-parse --verify --quiet "refs/tags/$VERSION" >/dev/null; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
@@ -44,10 +49,15 @@ jobs:
       - name: Build version tag check summary
         id: tag-report
         if: always()
+        env:
+          TAG_EXISTS: ${{ steps.tag.outputs.exists }}
+          TAG_OUTCOME: ${{ steps.tag.outcome }}
+          VERSION: ${{ steps.version.outputs.version }}
+          VERSION_OUTCOME: ${{ steps.version.outcome }}
         run: |
           TAG_CHECK_COMPLETED="false"
           VERSION_SOURCE_VALIDATION_FAILED="false"
-          if [ "${{ steps.version.outcome }}" != "success" ]; then
+          if [ "$VERSION_OUTCOME" != "success" ]; then
             VERSION_ERROR="The version could not be read, so tag availability was not checked."
             if [ -f version_check_error.txt ]; then
               VERSION_ERROR="$(< version_check_error.txt)"
@@ -57,35 +67,35 @@ jobs:
 
           ${VERSION_ERROR}
           EOF
-          elif [ "${{ steps.tag.outcome }}" != "success" ]; then
-            cat > tag_report.md <<'EOF'
+          elif [ "$TAG_OUTCOME" != "success" ]; then
+            cat > tag_report.md <<EOF
           ## Version Tag Check ❌
 
-          The version `${{ steps.version.outputs.version }}` could not be checked against git tags.
+          The version \`$VERSION\` could not be checked against git tags.
           EOF
-          elif [ "${{ steps.tag.outputs.exists }}" = "true" ]; then
+          elif [ "$TAG_EXISTS" = "true" ]; then
             TAG_CHECK_COMPLETED="true"
-            cat > tag_report.md <<'EOF'
+            cat > tag_report.md <<EOF
           ## Version Tag Check ❌
 
-          The version `${{ steps.version.outputs.version }}` already exists as a git tag.
+          The version \`$VERSION\` already exists as a git tag.
 
           Please update the version with a new version number before merging.
           EOF
-          elif [ "${{ steps.tag.outputs.exists }}" = "false" ]; then
+          elif [ "$TAG_EXISTS" = "false" ]; then
             TAG_CHECK_COMPLETED="true"
-            cat > tag_report.md <<'EOF'
+            cat > tag_report.md <<EOF
           ## Version Tag Check ✅
 
-          The version `${{ steps.version.outputs.version }}` does not exist as a git tag.
+          The version \`$VERSION\` does not exist as a git tag.
 
           This version is available for use.
           EOF
           else
-            cat > tag_report.md <<'EOF'
+            cat > tag_report.md <<EOF
           ## Version Tag Check ❌
 
-          The version `${{ steps.version.outputs.version }}` could not be checked against git tags.
+          The version \`$VERSION\` could not be checked against git tags.
           EOF
           fi
 
