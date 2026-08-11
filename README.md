@@ -29,5 +29,11 @@ docker run --rm -it mizucopo/samba-client:latest
 smbclient //192.168.1.21/homes -U mizu
 ```
 
+## 運用ドキュメント
+
+- [ドメイン用語](docs/agents/domain.md)
+- [Issue運用](docs/agents/issue-tracker.md)
+- [トリアージラベル](docs/agents/triage-labels.md)
+
 ## ライセンス
 このプロジェクトは [MIT License](LICENSE) のもとで公開しています。
