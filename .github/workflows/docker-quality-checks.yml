@@ -17,6 +17,7 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
       - name: Run Docker build checks
@@ -31,4 +32,4 @@ jobs:
           tags: ${{ env.LOCAL_IMAGE }}
       - name: Run Docker smoke test
         if: ${{ env.DOCKER_SMOKE_COMMAND != '' }}
-        run: docker run --rm --entrypoint sh "$LOCAL_IMAGE" -eu -c "$DOCKER_SMOKE_COMMAND"
+        run: docker run --rm --network none --entrypoint sh "$LOCAL_IMAGE" -eu -c "$DOCKER_SMOKE_COMMAND"
