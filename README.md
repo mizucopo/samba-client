@@ -31,6 +31,9 @@ smbclient //192.168.1.21/homes -U mizu
 
 ## 運用ドキュメント
 
+- [コントリビューションとリリース分類](CONTRIBUTING.md)
+- [採番・公開と復旧手順](docs/release.md)
+- [Docker build context](docs/docker-build-context.md)
 - [ドメイン用語](docs/agents/domain.md)
 - [Issue運用](docs/agents/issue-tracker.md)
 - [トリアージラベル](docs/agents/triage-labels.md)
