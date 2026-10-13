@@ -256,7 +256,7 @@ jobs:
         run: |
           docker build --check .
           docker build -t release-check .
-          docker run --rm release-check smbclient --version
+          docker run --rm --network none release-check smbclient --version
 
       - name: Set up Docker Buildx
         if: steps.image-state.outputs.version_exists != 'true'
